@@ -33,3 +33,4 @@ def find_faces(img, model):
             (x, y, x1, y1) = box.astype("int")
             faces.append([x, y, x1, y1])
     return faces
+    
