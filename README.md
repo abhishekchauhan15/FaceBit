@@ -13,17 +13,7 @@
   </a>
 </p>
 
-## 🚨 Forking this repo (please read!)
 
-Many people have contacted me asking me if they can use this code for their own website, and the answer to that question is usually **yes, with attribution**.
-
-I value keeping my site open source, but as you all know, _**plagiarism is bad**_. It's always disheartening whenever I find that someone has copied my site without giving me credit. I spent a non-trivial amount of effort building and designing this iteration of my website, and I am proud of it! All I ask of you all is to not claim this effort as your own.
-
-Please also note that I did not build this site with the intention of it being a starter theme, so if you have questions about implementation, please refer to the [Gatsby docs](https://www.gatsbyjs.org/docs/).
-
-### TL;DR
-
-Yes, you can fork this repo. Please give me proper credit by linking back to [brittanychiang.com](https://brittanychiang.com). Thanks!
 
 ## 🛠 Installation & Set Up
 
@@ -33,11 +23,31 @@ Yes, you can fork this repo. Please give me proper credit by linking back to [br
    git clone https://github.com/abhishekchauhan15/FaceBit.git
    ```
 
-2. Install all the requirements [NVM](https://github.com/nvm-sh/nvm)
+2. Install all the requirements 
 
    ```sh
    pip install -r requirements.txt
    ```
+2. Install virtual environment 
+
+   ```sh
+   pip install virtualenv
+   ```
+2. Create a new virtual environment. 
+   ```sh
+    virtualenv env
+   ```
+2. Run
+   ```sh
+    Set-ExecutionPolicy unrestricted
+   ```
+   Note : If it throws an error, run the same command in Admin PowerShell, and when prompted press `A`.
+
+2. Enable virtualenv
+   ```sh
+   .\env\Scripts\activate.ps1
+   ```
+
 
 3. Download MySql
 
@@ -61,7 +71,11 @@ Yes, you can fork this repo. Please give me proper credit by linking back to [br
 
    ```sh
    https://drive.google.com/drive/folders/1vQqg-QO3ogs1W9QaS43812HVIq6hXAWm?usp=sharing
+
    ```
+Final Set Up should look like this 
+
+![Screenshot 2022-05-29 225124](https://user-images.githubusercontent.com/76480451/170883248-3c406355-cadf-440d-ae40-b7cd9cfeec45.png)
 
 7. Open phpMyAdmin on browser
 
@@ -74,6 +88,9 @@ Yes, you can fork this repo. Please give me proper credit by linking back to [br
    ```sh
    Import the sql commands to set up the database in database folder named quizappstructure.sql
    ```
+   ![Screenshot 2022-05-29 225644](https://user-images.githubusercontent.com/76480451/170883474-374fd74d-c4b7-4eae-8464-f344e3219e8e.png)
+
+
 
 ## 🚀 Running on local server
 
@@ -105,18 +122,23 @@ Backend : Flask
 # 🎇 Authentication with Image Verification
 
 ✅ Basic Login, Register, Forgot Password, Change Password, etc <br>
-✅ System allows only one login per user, so that user can’t do any unfair means. <br>
-✅ System will verify image of user at every time of login and also in exam using face recognition technology.
+✅ Only one login per user <br>
+✅ Verify image of user at every time of login and also in    exam using face recognition technology.
 
 <br>
 
 # 🐱‍🏍Professor
 
 ✅ Using AI , professor can generate questions & answers <br>
-✅ Professor can create exam, view exam history, share details of exam with students, view questions, update, delete questions, but update & delete questions will not work at the time of exam & after the exam. <br>
-✅ Professor can insert marks of subjective & practical exam & also publish the results, view results. <br>
-✅ Professor can view Live Monitoring of Exam & also can view proctoring logs of the students. <br>
-✅ Professor can report problems, recharge exam wallet, view FAQ, contact us.
+✅ Professor can create exam <br>
+✅ view exam history <br>
+✅ Share details of exam with students <br>
+✅ View questions <br>
+✅ Update Questions <br>
+✅ Delete questions <br>
+✅ Update & delete questions will not work at the time of exam & after the exam. <br>
+✅ Professor can view proctoring logs of the students. <br>
+✅ Professor can report problems view FAQ, contact us.
 
 <br>
 
@@ -134,7 +156,6 @@ Backend : Flask
 ✅ If webpage is refresh then the timer will not be refreshed <br>
 ✅ Support for Negative Marking. <br>
 ✅ Support for randomize questions. <br>
-✅ Support for Calculator for Mathematical type of Exam <br>
 ✅ For Objective type of Exam:
 
 - Single page per question

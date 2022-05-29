@@ -43,8 +43,8 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 # Mail configs
 app.config['MAIL_SERVER']='smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
-app.config['MAIL_USERNAME'] = 'ac15092002@gmail.com'
-app.config['MAIL_PASSWORD'] = 'itismeabhi'
+app.config['MAIL_USERNAME'] = 'yourEmail'
+app.config['MAIL_PASSWORD'] = 'YourPassword'
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 app.config['SESSION_COOKIE_SAMESITE'] = "None"
@@ -80,6 +80,7 @@ YOUR_DOMAIN = 'http://localhost:5000'
 def make_session_permanent():
 	session.permanent = True
 
+# Verfiy professor role 
 def user_role_professor(f):
 	@wraps(f)
 	def wrap(*args, **kwargs):
@@ -94,6 +95,7 @@ def user_role_professor(f):
 			return redirect(url_for('login'))
 	return wrap
 
+# verifly student role 
 def user_role_student(f):
 	@wraps(f)
 	def wrap(*args, **kwargs):
@@ -109,11 +111,6 @@ def user_role_student(f):
 			return redirect(url_for('login'))
 	return wrap
 
-# @app.route("/config")
-# @user_role_professor
-# def get_publishable_key():
-#     stripe_config = {"publicKey": stripe_keys["publishable_key"]}
-#     return jsonify(stripe_config)
 
 @app.route('/video_feed', methods=['GET','POST'])
 @user_role_student
@@ -178,57 +175,7 @@ def create_checkout_session():
         return jsonify({'id': checkout_session.id})
     except Exception as e:
         return jsonify(error=str(e)), 403
-
-@app.route("/livemonitoringtid")
-@user_role_professor
-def livemonitoringtid():
-	cur = mysql.connection.cursor()
-	results = cur.execute('SELECT * from teachers where email = %s and uid = %s and proctoring_type = 1', (session['email'], session['uid']))
-	if results > 0:
-		cresults = cur.fetchall()
-		now = datetime.now()
-		now = now.strftime("%Y-%m-%d %H:%M:%S")
-		now = datetime.strptime(now,"%Y-%m-%d %H:%M:%S")
-		testids = []
-		for a in cresults:
-			if datetime.strptime(str(a['start']),"%Y-%m-%d %H:%M:%S") <= now and datetime.strptime(str(a['end']),"%Y-%m-%d %H:%M:%S") >= now:
-				testids.append(a['test_id'])
-		cur.close()
-		return render_template("livemonitoringtid.html", cresults = testids)
-	else:
-		return render_template("livemonitoringtid.html", cresults = None)
-
-@app.route('/live_monitoring', methods=['GET','POST'])
-@user_role_professor
-def live_monitoring():
-	if request.method == 'POST':
-		testid = request.form['choosetid']
-		return render_template('live_monitoring.html',testid = testid)
-	else:
-		return render_template('live_monitoring.html',testid = None)	
-
-@app.route("/success")
-@user_role_professor
-def success():
-	cur = mysql.connection.cursor()
-	cur.execute('UPDATE users set examcredits = examcredits+10 where email = %s and uid = %s', (session['email'], session['uid']))
-	mysql.connection.commit()
-	cur.close()
-	return render_template("success.html")
-
-@app.route("/cancelled")
-@user_role_professor
-def cancelled():
-    return render_template("cancelled.html")
-
-@app.route("/payment")
-@user_role_professor
-def payment():
-	cur = mysql.connection.cursor()
-	cur.execute('SELECT examcredits FROM USERS where email = %s and uid = %s', (session['email'], session['uid']))
-	callresults = cur.fetchone()
-	cur.close()
-	return render_template("payment.html", key = stripe_keys['publishable_key'], callresults = callresults)
+	
 
 @app.route('/')
 def index():
@@ -337,6 +284,7 @@ def lostpassword():
 			return render_template('lostpassword.html',error="Account not found.")
 	return render_template('lostpassword.html')
 
+# verify opt
 @app.route('/verifyOTPfp', methods=['GET','POST'])
 def verifyOTPfp():
 	if request.method == 'POST':
@@ -363,6 +311,7 @@ def lpnewpwd():
 			return render_template('login.html',error="Password doesn't matched.")
 	return render_template('lpnewpwd.html')
 
+
 @app.route('/generate_test')
 @user_role_professor
 def generate_test():
@@ -387,7 +336,7 @@ def generateOTP() :
     return OTP 
 
 
-
+# new user regestration 
 @app.route('/register', methods=['GET','POST'])
 def register():
 	if request.method == 'POST':
@@ -409,7 +358,7 @@ def register():
 		return redirect(url_for('verifyEmail')) 
 	return render_template('register.html')
 
-
+# login
 @app.route('/login', methods=['GET','POST'])
 def login():
 	if request.method == 'POST':
@@ -456,6 +405,7 @@ def login():
 			return render_template('login.html', error=error)
 	return render_template('login.html')
 
+# verify email
 @app.route('/verifyEmail',methods=['GET','POST'])
 def verifyEmail():
 	print("inside verify email")
@@ -484,6 +434,7 @@ def verifyEmail():
 			return render_template('register.html',error="OTP is incorrect.")
 	return render_template('verifyEmail.html')
 
+# change the password
 @app.route('/changepassword', methods=["GET", "POST"])
 def changePassword():
 	if request.method == "POST":
@@ -514,6 +465,7 @@ def changePassword():
 		else:
 			return redirect(url_for('/'))
 
+# logout
 @app.route('/logout', methods=["GET", "POST"])
 def logout():
 	cur = mysql.connection.cursor()
@@ -531,6 +483,7 @@ def examcreditscheck():
 	if results > 0:
 		return True
 
+# uploading the questions 
 class QAUploadForm(FlaskForm):
 	subject = StringField('Subject')
 	topic = StringField('Topic')
@@ -556,6 +509,7 @@ class QAUploadForm(FlaskForm):
 	def validate_start_date(form, field):
 		if datetime.strptime(str(form.start_date.data) + " " + str(form.start_time.data),"%Y-%m-%d %H:%M:%S") < datetime.now():
 			raise ValidationError("Start date and time must not be earlier than current")
+
 
 @app.route('/create_test_lqa', methods = ['GET', 'POST'])
 @user_role_professor
@@ -633,6 +587,7 @@ class TestForm(Form):
 	password = PasswordField('Exam Password')
 	img_hidden_form = HiddenField(label=(''))
 
+# creatting the test
 @app.route('/create-test', methods = ['GET', 'POST'])
 @user_role_professor
 def create_test():
@@ -748,6 +703,7 @@ def create_test_pqa():
 			return redirect(url_for('professor_index'))	
 	return render_template('create_prac_qa.html' , form = form)
 
+# deleting the a particular question
 @app.route('/deltidlist', methods=['GET'])
 @user_role_professor
 def deltidlist():
@@ -1322,6 +1278,7 @@ def viewresults():
 			flash("Some Error Occured!")
 			return redirect(url_for('publish-results-testid'))
 
+# publish the result 
 @app.route('/publish_results', methods=['GET','POST'])
 @user_role_professor
 def publish_results():
@@ -1333,6 +1290,7 @@ def publish_results():
 		cur.close()
 		flash("Results published sucessfully!")
 		return redirect(url_for('professor_index'))
+
 
 @app.route('/test_update_time', methods=['GET','POST'])
 @user_role_student
@@ -1849,5 +1807,5 @@ def test_generate():
 			return None
 
 if __name__ == "__main__":
-	# nltk.download('all')
+	nltk.download('all')
 	app.run(host = "127.0.0.1",debug=True) 	
