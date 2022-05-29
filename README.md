@@ -4,14 +4,26 @@
 <h1 align="center">
   FaceBit- AI Procturing 
 </h1>
-<p align="center">
 
-<a href="https://www.netlify.com/" target="_blank">Netlify</a>
-<a href="https://app.netlify.com/sites/brittanychiang/deploys" target="_blank">
+First Page:
+
 ![Screenshot 2022-05-29 212832](https://user-images.githubusercontent.com/76480451/170881325-3735c58f-434d-4c2f-b5e6-ca83c280e522.png)
 
-  </a>
-</p>
+Teacher Dashboard
+![Screenshot 2022-05-29 233946](https://user-images.githubusercontent.com/76480451/170885175-0719288a-608e-452c-93c4-bd4108ec5477.png)
+
+Student Dashboard
+![Screenshot 2022-05-29 234604](https://user-images.githubusercontent.com/76480451/170885513-66e54966-30b1-4f17-9e82-04067f8e289e.png)
+Past Test Conducted History
+![Screenshot 2022-05-29 234420](https://user-images.githubusercontent.com/76480451/170885519-64eaf3ae-4f0e-4c2e-a39e-b00f69d6a4d8.png)
+Giving Test
+![Screenshot 2022-05-29 234639](https://user-images.githubusercontent.com/76480451/170885542-c1edec8f-90b4-4e77-8fce-b37cacac448d.png)
+Proctor Logs 
+![Screenshot 2022-05-29 234709](https://user-images.githubusercontent.com/76480451/170885527-54d47c6e-6f3b-4257-bd70-17832d591225.png)
+
+# For More Watch The Demo Video : 
+  https://www.youtube.com/watch?v=l9pxWba17so
+
 
 
 

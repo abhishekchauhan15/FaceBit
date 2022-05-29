@@ -494,7 +494,7 @@ class QAUploadForm(FlaskForm):
 	end_time = TimeField('End Time', default=datetime.utcnow()+timedelta(hours=5.5))
 	duration = IntegerField('Duration(in min)')
 	password = PasswordField('Exam Password', [validators.Length(min=3, max=6)])
-	proctor_type = RadioField('Proctoring Type', choices=[('0','Automatic Monitoring'),('1','Live Monitoring')])
+	proctor_type = RadioField('Proctoring Type', choices=[('0','Automatic Monitoring')])
 
 	def validate_end_date(form, field):
 		if field.data < form.start_date.data:
@@ -566,7 +566,7 @@ class UploadForm(FlaskForm):
 	neg_mark = DecimalField('Enable negative marking in % ', validators=[NumberRange(min=0, max=100)])
 	duration = IntegerField('Duration(in min)')
 	password = PasswordField('Exam Password', [validators.Length(min=3, max=6)])
-	proctor_type = RadioField('Proctoring Type', choices=[('0','Automatic Monitoring'),('1','Live Monitoring')])
+	proctor_type = RadioField('Proctoring Type', choices=[('0','Automatic Monitoring')])
 
 	def validate_end_date(form, field):
 		if field.data < form.start_date.data:
@@ -647,7 +647,7 @@ class PracUploadForm(FlaskForm):
 	('43', 'Objective-C'),('29', 'PHP'),('54', 'Perl-6'),('116', 'Python 3x'),('117', 'R'),('17', 'Ruby'),('93', 'Rust'),('52', 'SQLite-queries'),('40', 'SQLite-schema'),
 	('39', 'Scala'),('85', 'Swift'),('57', 'TypeScript')])
 	password = PasswordField('Exam Password', [validators.Length(min=3, max=10)])
-	proctor_type = RadioField('Proctoring Type', choices=[('0','Automatic Monitoring'),('1','Live Monitoring')])
+	proctor_type = RadioField('Proctoring Type', choices=[('0','Automatic Monitoring')])
 
 	def validate_end_date(form, field):
 		if field.data < form.start_date.data:
