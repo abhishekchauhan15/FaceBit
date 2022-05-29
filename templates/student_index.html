@@ -1,0 +1,32 @@
+{% extends 'student_dashboard.html' %} {% block body %}
+<div
+  style="width: 50%; display: flex; justify-content: center; align-item: center"
+  class="container"
+>
+  <div class="col-12 d-flex align-items-center justify-content-center">
+    <div
+      style="border-radius: 20px !important"
+      class="bg-white shadow-soft border rounded border-light p-4 p-lg-5 w-100 fmxw-650"
+    >
+      <div class="text-center text-md-center mb-4 mt-md-0">
+        <h4 class="mb-0 4">Welcome to FaceBit</h4>
+        <br />
+        <h1 class="mb-0 h3">Hi, Student: {{session.name}}</h1>
+        <h6>You are the future of our country</h6>
+        <div style="display: flex; justify-content: center">
+          <img
+            style="
+              margin-top: 20px;
+              width: 90%;
+              display: flex;
+              justify-content: center;
+              height: 90%;
+            "
+            src="{{ url_for('static', filename='student.png') }}"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endblock %}
+</div>
