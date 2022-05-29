@@ -109,6 +109,11 @@ def user_role_student(f):
 			return redirect(url_for('login'))
 	return wrap
 
+# @app.route("/config")
+# @user_role_professor
+# def get_publishable_key():
+#     stripe_config = {"publicKey": stripe_keys["publishable_key"]}
+#     return jsonify(stripe_config)
 
 @app.route('/video_feed', methods=['GET','POST'])
 @user_role_student
@@ -148,7 +153,82 @@ def window_event():
 		else:
 			return "error in window"
 
+@app.route('/create-checkout-session', methods=['POST'])
+def create_checkout_session():
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[
+                {
+                    'price_data': {
+                        'currency': 'inr',
+                        'unit_amount': 499*100,
+                        'product_data': {
+                            'name': 'Basic Exam Plan of 10 units',
+                            'images': ['https://i.imgur.com/LsvO3kL_d.webp?maxwidth=760&fidelity=grand'],
+                        },
+                    },
+                    'quantity': 1,
+                },
+            ],
+            mode='payment',
+            success_url=YOUR_DOMAIN + '/success',
+            cancel_url=YOUR_DOMAIN + '/cancelled',
+        )
+        return jsonify({'id': checkout_session.id})
+    except Exception as e:
+        return jsonify(error=str(e)), 403
 
+@app.route("/livemonitoringtid")
+@user_role_professor
+def livemonitoringtid():
+	cur = mysql.connection.cursor()
+	results = cur.execute('SELECT * from teachers where email = %s and uid = %s and proctoring_type = 1', (session['email'], session['uid']))
+	if results > 0:
+		cresults = cur.fetchall()
+		now = datetime.now()
+		now = now.strftime("%Y-%m-%d %H:%M:%S")
+		now = datetime.strptime(now,"%Y-%m-%d %H:%M:%S")
+		testids = []
+		for a in cresults:
+			if datetime.strptime(str(a['start']),"%Y-%m-%d %H:%M:%S") <= now and datetime.strptime(str(a['end']),"%Y-%m-%d %H:%M:%S") >= now:
+				testids.append(a['test_id'])
+		cur.close()
+		return render_template("livemonitoringtid.html", cresults = testids)
+	else:
+		return render_template("livemonitoringtid.html", cresults = None)
+
+@app.route('/live_monitoring', methods=['GET','POST'])
+@user_role_professor
+def live_monitoring():
+	if request.method == 'POST':
+		testid = request.form['choosetid']
+		return render_template('live_monitoring.html',testid = testid)
+	else:
+		return render_template('live_monitoring.html',testid = None)	
+
+@app.route("/success")
+@user_role_professor
+def success():
+	cur = mysql.connection.cursor()
+	cur.execute('UPDATE users set examcredits = examcredits+10 where email = %s and uid = %s', (session['email'], session['uid']))
+	mysql.connection.commit()
+	cur.close()
+	return render_template("success.html")
+
+@app.route("/cancelled")
+@user_role_professor
+def cancelled():
+    return render_template("cancelled.html")
+
+@app.route("/payment")
+@user_role_professor
+def payment():
+	cur = mysql.connection.cursor()
+	cur.execute('SELECT examcredits FROM USERS where email = %s and uid = %s', (session['email'], session['uid']))
+	callresults = cur.fetchone()
+	cur.close()
+	return render_template("payment.html", key = stripe_keys['publishable_key'], callresults = callresults)
 
 @app.route('/')
 def index():
@@ -188,6 +268,37 @@ def faq():
 @app.route('/report_student')
 @user_role_student
 def report_student():
+	return render_template('report_student.html')
+
+@app.route('/report_professor_email', methods=['GET','POST'])
+@user_role_professor
+def report_professor_email():
+	if request.method == 'POST':
+		careEmail = "abhishekchauhan1509@gmail.com"
+		cname = session['name']
+		cemail = session['email']
+		ptype = request.form['prob_type']
+		cquery = request.form['rquery']
+		msg1 = Message('PROBLEM REPORTED', sender = sender, recipients = [careEmail])
+		msg1.body = " ".join(["NAME:", cname, "PROBLEM TYPE:", ptype ,"EMAIL:", cemail, "", "QUERY:", cquery]) 
+		mail.send(msg1)
+		flash('Your Problem has been recorded.', 'success')
+	return render_template('report_professor.html')
+
+@app.route('/report_student_email', methods=['GET','POST'])
+@user_role_student
+def report_student_email():
+	if request.method == 'POST':
+		careEmail = "abhishekchauhan1509@gmail.com"
+		cname = session['name']
+		cemail = session['email']
+		ptype = request.form['prob_type']
+		cquery = request.form['rquery']
+		msg1 = Message('PROBLEM REPORTED', sender = sender, recipients = [careEmail])
+		msg1.body = " ".join(["NAME:", cname, "PROBLEM TYPE:", ptype ,"EMAIL:", cemail, "", "QUERY:", cquery]) 
+		msg1.body = " ".join(["NAME:", cname, "PROBLEM TYPE:", ptype ,"EMAIL:", cemail, "", "QUERY:", cquery]) 
+		mail.send(msg1)
+		flash('Your Problem has been recorded.', 'success')
 	return render_template('report_student.html')
 
 @app.route('/contact', methods=['GET','POST'])
@@ -252,9 +363,10 @@ def lpnewpwd():
 			return render_template('login.html',error="Password doesn't matched.")
 	return render_template('lpnewpwd.html')
 
-@app.route('/test_generate')
+@app.route('/generate_test')
 @user_role_professor
 def generate_test():
+	print("generation mai aya hu")
 	return render_template('generatetest.html')
 
 @app.route('/changepassword_professor')
@@ -274,20 +386,31 @@ def generateOTP() :
         OTP += digits[math.floor(random.random() * 10)] 
     return OTP 
 
+
+# session['tempOTP'] = 12
+
 @app.route('/register', methods=['GET','POST'])
 def register():
+	print("indside register")
 	if request.method == 'POST':
 		name = request.form['name']
 		email = request.form['email']
 		password = request.form['password']
 		user_type = request.form['user_type']
 		imgdata = request.form['image_hidden']
-		session['tempName'] = name
+		# session['tempName'] = name
+		print("printing the name")
+		# print("name in session",session['name'])
 		session['tempEmail'] = email
+		# print("printing the email", session['tempEmail'])
 		session['tempPassword'] = password
+		# print("printing the password", session['tempPassword'])
 		session['tempUT'] = user_type
+		# print("printing the user type", session['tempUT'])
 		session['tempImage'] = imgdata
+		# print("printing the image", session['tempImage'])
 		sesOTP = generateOTP()
+		print(sesOTP)
 		session['tempOTP'] = sesOTP
 		msg1 = Message('FaceBit - OTP Verification', sender = sender, recipients = [email])
 		msg1.body = "New Account opening - Your OTP Verfication code is "+sesOTP+"."
@@ -426,7 +549,7 @@ class QAUploadForm(FlaskForm):
 	end_time = TimeField('End Time', default=datetime.utcnow()+timedelta(hours=5.5))
 	duration = IntegerField('Duration(in min)')
 	password = PasswordField('Exam Password', [validators.Length(min=3, max=6)])
-	proctor_type = RadioField('Proctoring Type', choices=[('0','Automatic Monitoring')])
+	proctor_type = RadioField('Proctoring Type', choices=[('0','Automatic Monitoring'),('1','Live Monitoring')])
 
 	def validate_end_date(form, field):
 		if field.data < form.start_date.data:
@@ -442,6 +565,48 @@ class QAUploadForm(FlaskForm):
 		if datetime.strptime(str(form.start_date.data) + " " + str(form.start_time.data),"%Y-%m-%d %H:%M:%S") < datetime.now():
 			raise ValidationError("Start date and time must not be earlier than current")
 
+@app.route('/create_test_lqa', methods = ['GET', 'POST'])
+@user_role_professor
+def create_test_lqa():
+	form = QAUploadForm()
+	if request.method == 'POST' and form.validate_on_submit():
+		test_id = generate_slug(2)
+		filename = secure_filename(form.doc.data.filename)
+		filestream = form.doc.data
+		filestream.seek(0)
+		ef = pd.read_csv(filestream)
+		fields = ['qid','q','marks']
+		df = pd.DataFrame(ef, columns = fields)
+		cur = mysql.connection.cursor()
+		ecc = examcreditscheck()
+		if ecc:
+			for row in df.index:
+				cur.execute('INSERT INTO longqa(test_id,qid,q,marks,uid) values(%s,%s,%s,%s,%s)', (test_id, df['qid'][row], df['q'][row], df['marks'][row], session['uid']))
+				cur.connection.commit()
+				
+			start_date = form.start_date.data
+			end_date = form.end_date.data
+			start_time = form.start_time.data
+			end_time = form.end_time.data
+			start_date_time = str(start_date) + " " + str(start_time)
+			end_date_time = str(end_date) + " " + str(end_time)
+			duration = int(form.duration.data)*60
+			password = form.password.data
+			subject = form.subject.data
+			topic = form.topic.data
+			proctor_type = form.proctor_type.data
+			cur.execute('INSERT INTO teachers (email, test_id, test_type, start, end, duration, show_ans, password, subject, topic, neg_marks, calc, proctoring_type, uid) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+				(dict(session)['email'], test_id, "subjective", start_date_time, end_date_time, duration, 0, password, subject, topic, 0, 0, proctor_type, session['uid']))
+			mysql.connection.commit()
+			cur.execute('UPDATE users SET examcredits = examcredits-1 where email = %s and uid = %s', (session['email'],session['uid']))
+			mysql.connection.commit()
+			cur.close()
+			flash(f'Exam ID: {test_id}', 'success')
+			return redirect(url_for('professor_index'))
+		else:
+			flash("No exam credits points are found! Please pay it!")
+			return redirect(url_for('professor_index'))
+	return render_template('create_test_lqa.html' , form = form)
 
 class UploadForm(FlaskForm):
 	subject = StringField('Subject')
@@ -455,7 +620,7 @@ class UploadForm(FlaskForm):
 	neg_mark = DecimalField('Enable negative marking in % ', validators=[NumberRange(min=0, max=100)])
 	duration = IntegerField('Duration(in min)')
 	password = PasswordField('Exam Password', [validators.Length(min=3, max=6)])
-	proctor_type = RadioField('Proctoring Type', choices=[('0','Automatic Monitoring')])
+	proctor_type = RadioField('Proctoring Type', choices=[('0','Automatic Monitoring'),('1','Live Monitoring')])
 
 	def validate_end_date(form, field):
 		if field.data < form.start_date.data:
@@ -535,7 +700,7 @@ class PracUploadForm(FlaskForm):
 	('43', 'Objective-C'),('29', 'PHP'),('54', 'Perl-6'),('116', 'Python 3x'),('117', 'R'),('17', 'Ruby'),('93', 'Rust'),('52', 'SQLite-queries'),('40', 'SQLite-schema'),
 	('39', 'Scala'),('85', 'Swift'),('57', 'TypeScript')])
 	password = PasswordField('Exam Password', [validators.Length(min=3, max=10)])
-	proctor_type = RadioField('Proctoring Type', choices=[('0','Automatic Monitoring')])
+	proctor_type = RadioField('Proctoring Type', choices=[('0','Automatic Monitoring'),('1','Live Monitoring')])
 
 	def validate_end_date(form, field):
 		if field.data < form.start_date.data:
@@ -551,6 +716,45 @@ class PracUploadForm(FlaskForm):
 		if datetime.strptime(str(form.start_date.data) + " " + str(form.start_time.data),"%Y-%m-%d %H:%M:%S") < datetime.now():
 			raise ValidationError("Start date and time must not be earlier than current")
 
+@app.route('/create_test_pqa', methods = ['GET', 'POST'])
+@user_role_professor
+def create_test_pqa():
+	form = PracUploadForm()
+	if request.method == 'POST' and form.validate_on_submit():
+		test_id = generate_slug(2)
+		ecc = examcreditscheck()
+		print(ecc)
+		if ecc:
+			test_id = generate_slug(2)
+			compiler = form.compiler.data
+			questionprac = form.questionprac.data
+			marksprac = int(form.marksprac.data)
+			cur = mysql.connection.cursor()
+			cur.execute('INSERT INTO practicalqa(test_id,qid,q,compiler,marks,uid) values(%s,%s,%s,%s,%s,%s)', (test_id, 1, questionprac, compiler, marksprac, session['uid']))
+			mysql.connection.commit()
+			start_date = form.start_date.data
+			end_date = form.end_date.data
+			start_time = form.start_time.data
+			end_time = form.end_time.data
+			start_date_time = str(start_date) + " " + str(start_time)
+			end_date_time = str(end_date) + " " + str(end_time)
+			duration = int(form.duration.data)*60
+			password = form.password.data
+			subject = form.subject.data
+			topic = form.topic.data
+			proctor_type = form.proctor_type.data
+			cur.execute('INSERT INTO teachers (email, test_id, test_type, start, end, duration, show_ans, password, subject, topic, neg_marks, calc, proctoring_type, uid) values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+				(dict(session)['email'], test_id, "practical", start_date_time, end_date_time, duration, 0, password, subject, topic, 0, 0, proctor_type, session['uid']))
+			mysql.connection.commit()
+			cur.execute('UPDATE users SET examcredits = examcredits-1 where email = %s and uid = %s', (session['email'],session['uid']))
+			mysql.connection.commit()
+			cur.close()
+			flash(f'Exam ID: {test_id}', 'success')
+			return redirect(url_for('professor_index'))
+		else:
+			flash("No exam credits points are found! Please pay it!")
+			return redirect(url_for('professor_index'))	
+	return render_template('create_prac_qa.html' , form = form)
 
 @app.route('/deltidlist', methods=['GET'])
 @user_role_professor
@@ -855,6 +1059,25 @@ def viewstudentslogs():
 	else:
 		return render_template("viewstudentslogs.html", cresults = None)
 
+@app.route('/insertmarkstid', methods=['GET'])
+@user_role_professor
+def insertmarkstid():
+	cur = mysql.connection.cursor()
+	results = cur.execute('SELECT * from teachers where show_ans = 0 and email = %s and uid = %s and (test_type = %s or test_type = %s)', (session['email'], session['uid'],"subjective","practical"))
+	if results > 0:
+		cresults = cur.fetchall()
+		now = datetime.now()
+		now = now.strftime("%Y-%m-%d %H:%M:%S")
+		now = datetime.strptime(now,"%Y-%m-%d %H:%M:%S")
+		testids = []
+		for a in cresults:
+			if datetime.strptime(str(a['end']),"%Y-%m-%d %H:%M:%S") < now:
+				testids.append(a['test_id'])
+		cur.close()
+		return render_template("insertmarkstid.html", cresults = testids)
+	else:
+		return render_template("insertmarkstid.html", cresults = None)
+
 @app.route('/displaystudentsdetails', methods=['GET','POST'])
 @user_role_professor
 def displaystudentsdetails():
@@ -866,7 +1089,73 @@ def displaystudentsdetails():
 		cur.close()
 		return render_template("displaystudentsdetails.html", callresults = callresults)
 
+@app.route('/insertmarksdetails', methods=['GET','POST'])
+@user_role_professor
+def insertmarksdetails():
+	if request.method == 'POST':
+		tidoption = request.form['choosetid']
+		et = examtypecheck(tidoption)
+		if et['test_type'] == "subjective":
+			cur = mysql.connection.cursor()
+			cur.execute('SELECT DISTINCT email,test_id from longtest where test_id = %s', [tidoption])
+			callresults = cur.fetchall()
+			cur.close()
+			return render_template("subdispstudentsdetails.html", callresults = callresults)
+		elif et['test_type'] == "practical":
+			cur = mysql.connection.cursor()
+			cur.execute('SELECT DISTINCT email,test_id from practicaltest where test_id = %s', [tidoption])
+			callresults = cur.fetchall()
+			cur.close()
+			return render_template("pracdispstudentsdetails.html", callresults = callresults)
+		else:
+			flash("Some Error was occured!",'error')
+			return redirect(url_for('insertmarkstid'))
 
+@app.route('/insertsubmarks/<testid>/<email>', methods=['GET','POST'])
+@user_role_professor
+def insertsubmarks(testid,email):
+	if request.method == "GET":
+		cur = mysql.connection.cursor()
+		cur.execute('SELECT l.email as email, l.marks as inputmarks, l.test_id as test_id, l.qid as qid, l.ans as ans, lqa.marks as marks, l.uid as uid, lqa.q as q  from longtest l, longqa lqa where l.test_id = %s and l.email = %s and l.test_id = lqa.test_id and l.qid = lqa.qid ORDER BY qid ASC', (testid, email))
+		callresults = cur.fetchall()
+		cur.close()
+		return render_template("insertsubmarks.html", callresults = callresults)
+	if request.method == "POST":
+		cur = mysql.connection.cursor()
+		results1 = cur.execute('SELECT COUNT(qid) from longtest where test_id = %s and email = %s',(testid, email))
+		results1 = cur.fetchone()
+		cur.close()
+		for sa in range(1,results1['COUNT(qid)']+1):
+			marksByProfessor = request.form[str(sa)]
+			cur = mysql.connection.cursor()
+			cur.execute('UPDATE longtest SET marks = %s WHERE test_id = %s and email = %s and qid = %s', (marksByProfessor, testid, email, sa))
+			mysql.connection.commit()
+		cur.close()
+		flash('Marks Entered Sucessfully!', 'success')
+		return redirect(url_for('insertmarkstid'))
+
+@app.route('/insertpracmarks/<testid>/<email>', methods=['GET','POST'])
+@user_role_professor
+def insertpracmarks(testid,email):
+	if request.method == "GET":
+		cur = mysql.connection.cursor()
+		cur.execute('SELECT l.email as email, l.marks as inputmarks, l.test_id as test_id, l.qid as qid, l.code as code, l.input as input, l.executed as executed, lqa.marks as marks, l.uid as uid, lqa.q as q  from practicaltest l, practicalqa lqa where l.test_id = %s and l.email = %s and l.test_id = lqa.test_id and l.qid = lqa.qid ORDER BY qid ASC', (testid, email))
+		callresults = cur.fetchall()
+		cur.close()
+		return render_template("insertpracmarks.html", callresults = callresults)
+	if request.method == "POST":
+		cur = mysql.connection.cursor()
+		results1 = cur.execute('SELECT COUNT(qid) from practicaltest where test_id = %s and email = %s',(testid, email))
+		results1 = cur.fetchone()
+		cur.close()
+		for sa in range(1,results1['COUNT(qid)']+1):
+			marksByProfessor = request.form[str(sa)]
+			cur = mysql.connection.cursor()
+			cur.execute('UPDATE practicaltest SET marks = %s WHERE test_id = %s and email = %s and qid = %s', (marksByProfessor, testid, email, sa))
+			mysql.connection.commit()
+		cur.close()
+		flash('Marks Entered Sucessfully!', 'success')
+		return redirect(url_for('insertmarkstid'))
 
 def displaywinstudentslogs(testid,email):
 	cur = mysql.connection.cursor()
@@ -1000,6 +1289,25 @@ def share_details_emails():
 		flash('Emails sended sucessfully!', 'success')
 	return render_template('share_details.html')
 
+@app.route("/publish-results-testid", methods=['GET','POST'])
+@user_role_professor
+def publish_results_testid():
+	cur = mysql.connection.cursor()
+	results = cur.execute('SELECT * from teachers where test_type != %s AND show_ans = 0 AND email = %s AND uid = %s', ("objectve", session['email'], session['uid']))
+	if results > 0:
+		cresults = cur.fetchall()
+		now = datetime.now()
+		now = now.strftime("%Y-%m-%d %H:%M:%S")
+		now = datetime.strptime(now,"%Y-%m-%d %H:%M:%S")
+		testids = []
+		for a in cresults:
+			if datetime.strptime(str(a['end']),"%Y-%m-%d %H:%M:%S") < now:
+				testids.append(a['test_id'])
+		cur.close()
+		return render_template("publish_results_testid.html", cresults = testids)
+	else:
+		return render_template("publish_results_testid.html", cresults = None)
+
 @app.route('/viewresults', methods=['GET','POST'])
 @user_role_professor
 def viewresults():
@@ -1022,6 +1330,17 @@ def viewresults():
 			flash("Some Error Occured!")
 			return redirect(url_for('publish-results-testid'))
 
+@app.route('/publish_results', methods=['GET','POST'])
+@user_role_professor
+def publish_results():
+	if request.method == 'POST':
+		tidoption = request.form['testidsp']
+		cur = mysql.connection.cursor()
+		cur.execute('UPDATE teachers set show_ans = 1 where test_id = %s', ([tidoption]))
+		mysql.connection.commit()
+		cur.close()
+		flash("Results published sucessfully!")
+		return redirect(url_for('professor_index'))
 
 @app.route('/test_update_time', methods=['GET','POST'])
 @user_role_student
@@ -1526,13 +1845,17 @@ def test_generate():
 			testgenerate = zip(question_list, answer_list)
 			return render_template('generatedtestdata.html', cresults = testgenerate)
 		elif testType == "subjective":
+			print(testType)
 			subjective_generator = SubjectiveTest(inputText,noOfQues)
+			print(subjective_generator)
 			question_list, answer_list = subjective_generator.generate_test()
+			print(question_list)
 			testgenerate = zip(question_list, answer_list)
+			print(testgenerate)
 			return render_template('generatedtestdata.html', cresults = testgenerate)
 		else:
 			return None
 
 if __name__ == "__main__":
 	# nltk.download('all')
-	app.run(host = "0.0.0.0",debug=True) 	
+	app.run(host = "127.0.0.1",debug=True) 	

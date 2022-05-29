@@ -2,7 +2,6 @@
 <div class="row align-items-center d-flex justify-content-center">
   <div class="col-12 mb-4">
     <div
-      style="boder-radius: 30px"
       class="card border-light shadow-sm components-section align-items-center d-flex justify-content-center"
     >
       <div class="card-body align-items-center d-flex justify-content-center">
@@ -15,17 +14,17 @@
             <table id="example" class="display nowrap" style="width: 100%">
               <thead class="thead-light">
                 <tr>
-                  <th scope="col">Sr No</th>
                   <th scope="col">Name</th>
+                  <th scope="col">Email</th>
                   <th scope="col">Marks</th>
                 </tr>
               </thead>
               <tbody>
                 {% for result in data %}
                 <tr>
-                  <td>{{result[0]}}</td>
-                  <td>{{result[1]}}</td>
-                  <td>{{result[2]}}</td>
+                  <td>{{result['name']}}</td>
+                  <td>{{result['email']}}</td>
+                  <td>{{result['marks']}}</td>
                 </tr>
                 {% endfor %}
               </tbody>
