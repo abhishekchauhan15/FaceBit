@@ -2,17 +2,6 @@
 
 # YOUTUBE LINK OF THE PROJECT:
 
-
-# MODEL LINK YOLO V3:
-
-https://pjreddie.com/media/files/yolov3.weights
-
-# IF YOU ARE LOOKING ONLY FOR PROCTORING REFER THIS LIBRARY:
-
-## Package Link: https://pypi.org/project/proctoring/
-
-## Github Link: https://github.com/narender-rk10/proctoring
-
 ## PROPOSED SYSTEM
 
 # A) Authentication with Image Verification
