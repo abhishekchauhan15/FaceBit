@@ -387,36 +387,28 @@ def generateOTP() :
     return OTP 
 
 
-# session['tempOTP'] = 12
 
 @app.route('/register', methods=['GET','POST'])
 def register():
-	print("indside register")
 	if request.method == 'POST':
 		name = request.form['name']
 		email = request.form['email']
 		password = request.form['password']
 		user_type = request.form['user_type']
 		imgdata = request.form['image_hidden']
-		# session['tempName'] = name
-		print("printing the name")
-		# print("name in session",session['name'])
+		session['tempName'] = name
 		session['tempEmail'] = email
-		# print("printing the email", session['tempEmail'])
 		session['tempPassword'] = password
-		# print("printing the password", session['tempPassword'])
 		session['tempUT'] = user_type
-		# print("printing the user type", session['tempUT'])
 		session['tempImage'] = imgdata
-		# print("printing the image", session['tempImage'])
 		sesOTP = generateOTP()
-		print(sesOTP)
 		session['tempOTP'] = sesOTP
 		msg1 = Message('FaceBit - OTP Verification', sender = sender, recipients = [email])
 		msg1.body = "New Account opening - Your OTP Verfication code is "+sesOTP+"."
 		mail.send(msg1)
 		return redirect(url_for('verifyEmail')) 
 	return render_template('register.html')
+
 
 @app.route('/login', methods=['GET','POST'])
 def login():
