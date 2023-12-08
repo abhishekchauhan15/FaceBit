@@ -79,23 +79,14 @@ Proctor Logs
    Set Port of MySql at 8111
    ```
 
-6. Download these Folders into Project Folder
 
-   ```sh
-   https://drive.google.com/drive/folders/1vQqg-QO3ogs1W9QaS43812HVIq6hXAWm?usp=sharing
-
-   ```
-Final Set Up should look like this 
-
-![Screenshot 2022-05-29 225124](https://user-images.githubusercontent.com/76480451/170883248-3c406355-cadf-440d-ae40-b7cd9cfeec45.png)
-
-7. Open phpMyAdmin on browser
+6. Open phpMyAdmin on browser
 
    ```sh
     http://localhost/phpmyadmin/index.php
    ```
 
-8. Import MySql file
+7. Import MySql file
 
    ```sh
    Import the sql commands to set up the database in database folder named quizappstructure.sql
@@ -106,13 +97,13 @@ Final Set Up should look like this
 
 ## 🚀 Running on local server
 
-7. Run the App file
+8. Run the App file
 
    ```sh
    Run the python file named app.py
    ```
 
-8. Open the on localhost
+9. Open the on localhost
 
    ```sh
    http://localhost:5000/
