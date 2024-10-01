@@ -20,3 +20,4 @@ out/
 static/html/
 static/vendor/
 .vscode
+myenv

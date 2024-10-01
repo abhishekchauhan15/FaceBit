@@ -8,13 +8,12 @@ from functools import wraps
 from werkzeug.utils import secure_filename
 from coolname import generate_slug
 from datetime import timedelta, datetime
-from objective import ObjectiveTest
-from subjective import SubjectiveTest
+# from objective import ObjectiveTest
+# from subjective import SubjectiveTest
 from deepface import DeepFace
 import pandas as pd
-import stripe
-import operator
-import functools
+# import operator
+# import functools
 import math, random 
 import csv
 import cv2
@@ -43,8 +42,8 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 # Mail configs
 app.config['MAIL_SERVER']='smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
-app.config['MAIL_USERNAME'] = 'yourEmail'
-app.config['MAIL_PASSWORD'] = 'YourPassword'
+app.config['MAIL_USERNAME'] = 'ac15092002@gmail.com'
+app.config['MAIL_PASSWORD'] = '7tX98VWhD!H!5ou'
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 app.config['SESSION_COOKIE_SAMESITE'] = "None"
@@ -136,47 +135,6 @@ def video_feed():
 		else:
 			return "error in video"
 
-@app.route('/window_event', methods=['GET','POST'])
-@user_role_student
-def window_event():
-	if request.method == "POST":
-		testid = request.form['testid']
-		cur = mysql.connection.cursor()
-		results = cur.execute('INSERT INTO window_estimation_log (email, test_id, name, window_event, uid) values(%s,%s,%s,%s,%s)', (dict(session)['email'], testid, dict(session)['name'], 1, dict(session)['uid']))
-		mysql.connection.commit()
-		cur.close()
-		if(results > 0):
-			return "recorded window"
-		else:
-			return "error in window"
-
-@app.route('/create-checkout-session', methods=['POST'])
-def create_checkout_session():
-    try:
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[
-                {
-                    'price_data': {
-                        'currency': 'inr',
-                        'unit_amount': 499*100,
-                        'product_data': {
-                            'name': 'Basic Exam Plan of 10 units',
-                            'images': ['https://i.imgur.com/LsvO3kL_d.webp?maxwidth=760&fidelity=grand'],
-                        },
-                    },
-                    'quantity': 1,
-                },
-            ],
-            mode='payment',
-            success_url=YOUR_DOMAIN + '/success',
-            cancel_url=YOUR_DOMAIN + '/cancelled',
-        )
-        return jsonify({'id': checkout_session.id})
-    except Exception as e:
-        return jsonify(error=str(e)), 403
-	
-
 @app.route('/')
 def index():
 	return render_template('index.html')
@@ -189,9 +147,6 @@ def not_found(e):
 def internal_error(error):
 	return render_template("500.html") 
 
-@app.route('/calc')
-def calc():
-	return render_template('calc.html')
 
 @app.route('/report_professor')
 @user_role_professor
@@ -1807,5 +1762,5 @@ def test_generate():
 			return None
 
 if __name__ == "__main__":
-	nltk.download('all')
+	# nltk.download('all')
 	app.run(host = "127.0.0.1",debug=True) 	
