@@ -16,3 +16,12 @@ object_detection==0.0.3
 Flask-Session==0.4.0
 Flask-Mail==0.9.1
 objective==0.0.13
+opencv-python
+opencv-python-headless
+deepface
+wtforms-components
+dlib
+nltk
+python-dotenv 
+Flask-MySQLdb
+

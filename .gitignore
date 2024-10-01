@@ -21,3 +21,4 @@ static/html/
 static/vendor/
 .vscode
 myenv
+.env

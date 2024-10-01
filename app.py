@@ -28,25 +28,34 @@ from flask_cors import CORS, cross_origin
 import camera
 import nltk
 from nltk import sent_tokenize
+from dotenv import load_dotenv
+import os
+
+
+load_dotenv()
+
 
 app = Flask(__name__)
 
-# MySql configs 
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'me'
-app.config['MYSQL_PORT'] = 8111
-app.config['MYSQL_PASSWORD'] = 'iamabhi@1509'
-app.config['MYSQL_DB'] = 'quizapp'
+# # MySql configs 
+
+app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST')
+app.config['MYSQL_USER'] = os.getenv('MYSQL_USER')
+app.config['MYSQL_PASSWORD'] = os.getenv('MYSQL_PASSWORD')
+app.config['MYSQL_DB'] = os.getenv('MYSQL_DB')
+app.config['MYSQL_PORT'] = int(os.getenv('MYSQL_PORT', 3306))  # Default to 3306 if not set
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
+
 # Mail configs
-app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
-app.config['MAIL_USERNAME'] = 'ac15092002@gmail.com'
-app.config['MAIL_PASSWORD'] = '7tX98VWhD!H!5ou'
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME', 'your_email@gmail.com')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD', 'your_email_password')
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 app.config['SESSION_COOKIE_SAMESITE'] = "None"
+
 
 # Session configs
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -306,10 +315,11 @@ def register():
 		session['tempUT'] = user_type
 		session['tempImage'] = imgdata
 		sesOTP = generateOTP()
-		session['tempOTP'] = sesOTP
-		msg1 = Message('FaceBit - OTP Verification', sender = sender, recipients = [email])
-		msg1.body = "New Account opening - Your OTP Verfication code is "+sesOTP+"."
-		mail.send(msg1)
+		print("OTP ---------------> ", sesOTP)
+		# session['tempOTP'] = sesOTP
+		# msg1 = Message('FaceBit - OTP Verification', sender = sender, recipients = [email])
+		# msg1.body = "New Account opening - Your OTP Verfication code is "+sesOTP+"."
+		# mail.send(msg1)
 		return redirect(url_for('verifyEmail')) 
 	return render_template('register.html')
 
@@ -367,26 +377,26 @@ def verifyEmail():
 	# print(session)
 	if request.method == 'POST':
 		theOTP = request.form['eotp']
-		mOTP = session['tempOTP']
+		# mOTP = session['tempOTP']
 		dbName = session['tempName']
 		dbEmail = session['tempEmail']
 		dbPassword = session['tempPassword']
 		dbUser_type = session['tempUT']
 		dbImgdata = session['tempImage']
-		if(theOTP == mOTP):
-			cur = mysql.connection.cursor()
-			ar = cur.execute('INSERT INTO users(name, email, password, user_type, user_image, user_login) values(%s,%s,%s,%s,%s,%s)', (dbName, dbEmail, dbPassword, dbUser_type, dbImgdata,0))
-			mysql.connection.commit()
-			if ar > 0:
-				flash("Thanks for registering! You are sucessfully verified!.")
-				return  redirect(url_for('login'))
-			else:
-				flash("Error Occurred!")
-				return  redirect(url_for('login')) 
-			cur.close()
-			session.clear()
+		# if(1):
+		cur = mysql.connection.cursor()
+		ar = cur.execute('INSERT INTO users(name, email, password, user_type, user_image, user_login) values(%s,%s,%s,%s,%s,%s)', (dbName, dbEmail, dbPassword, dbUser_type, dbImgdata,0))
+		mysql.connection.commit()
+		if ar > 0:
+			flash("Thanks for registering! You are sucessfully verified!.")
+			return  redirect(url_for('login'))
 		else:
-			return render_template('register.html',error="OTP is incorrect.")
+			flash("Error Occurred!")
+			return  redirect(url_for('login')) 
+		cur.close()
+		session.clear()
+		# else:
+		# 	return render_template('register.html',error="OTP is incorrect.")
 	return render_template('verifyEmail.html')
 
 # change the password
